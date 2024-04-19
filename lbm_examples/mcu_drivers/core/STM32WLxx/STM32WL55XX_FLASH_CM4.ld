@@ -16,9 +16,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  ROM    (rx)    : ORIGIN = 0x08020000, LENGTH = 128K   /* Flash memory dedicated to CM0+ */
-  RAM1   (xrw)   : ORIGIN = 0x20004000, LENGTH = 16K    /* Non-backup SRAM1 dedicated to CM0+ */
-  RAM2   (xrw)   : ORIGIN = 0x2000C000, LENGTH = 16K    /* Backup SRAM2 dedicated to CM0+ */
+  ROM    (rx)    : ORIGIN = 0x08000000, LENGTH = 128K   /* Flash memory dedicated to CM4 */
+  RAM1   (xrw)   : ORIGIN = 0x20000000, LENGTH = 16K    /* Non-backup SRAM1 dedicated to CM4 */
+  RAM2   (xrw)   : ORIGIN = 0x20008000, LENGTH = 16K    /* Backup SRAM2 dedicated to CM4 */
 }
 
 /* Sections */
@@ -133,7 +133,7 @@ SECTIONS
     __bss_end__ = _ebss;
   } >RAM1
 
-  /* Data section into "SRAM1" Ram type memory: Non-backup SRAM1 dedicated to CM0+ */
+  /* Data section into "SRAM1" Ram type memory: Non-backup SRAM1 dedicated to CM4 */
   . = ALIGN(8);
   RAM1_region :
   {
@@ -144,7 +144,7 @@ SECTIONS
     _eRAM1_region = .;         /* define a global symbol at section end */
   } >RAM1
 
-  /* Data section into "SRAM2" Ram type memory: Backup SRAM2 dedicated to CM0+ */
+  /* Data section into "SRAM2" Ram type memory: Backup SRAM2 dedicated to CM4 */
   . = ALIGN(8);
   RAM2_region :
   {
