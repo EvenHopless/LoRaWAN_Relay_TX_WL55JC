@@ -1,10 +1,10 @@
-/**
- * @file      main.h
+/*!
+ * \file    relay_rx_mac_parser.h
  *
- * @brief     main program definitions
+ * \brief   MAC command parser for Relay RX
  *
  * The Clear BSD License
- * Copyright Semtech Corporation 2021. All rights reserved.
+ * Copyright Semtech Corporation 2023. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted (subject to the limitations in the disclaimer
@@ -31,62 +31,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef __RELAY_RX_MAC_PARSER__
+#define __RELAY_RX_MAC_PARSER__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 /*
- * -----------------------------------------------------------------------------
- * --- DEPENDENCIES ------------------------------------------------------------
+ *-----------------------------------------------------------------------------------
+ * --- DEPENDENCIES -----------------------------------------------------------------
  */
-
-#include <stdint.h>   // C99 types
-#include <stdbool.h>  // bool type
+#include "lr1_stack_mac_layer.h"
 
 /*
  * -----------------------------------------------------------------------------
- * --- PUBLIC MACROS -----------------------------------------------------------
+ * --- PRIVATE MACROS-----------------------------------------------------------
  */
 
 /*
  * -----------------------------------------------------------------------------
- * --- PUBLIC CONSTANTS --------------------------------------------------------
+ * --- PRIVATE CONSTANTS -------------------------------------------------------
+ */
+/*
+ *-----------------------------------------------------------------------------------
+ *--- PRIVATE VARIABLES -------------------------------------------------------------
+ */
+/*
+ *-----------------------------------------------------------------------------------
+ *--- PRIVATE FUNCTIONS DECLARATION -------------------------------------------------
  */
 
 /*
- * -----------------------------------------------------------------------------
- * --- PUBLIC TYPES ------------------------------------------------------------
+ *-----------------------------------------------------------------------------------
+ *--- PUBLIC FUNCTIONS DEFINITIONS --------------------------------------------------
  */
 
 /**
- * @brief Application examples
+ * @brief Dedicated parser for relay RX MAC Command
+ *
+ * @param[in,out]   lr1_mac LoRaWAN stack pointer
+ * @return true             MAC command is know
+ * @return false            MAC command is unknow
  */
-#define PERIODICAL_UPLINK 0
-#define HW_MODEM 1
-#define PORTING_TESTS 2
-#define LCTT_CERTIF 3
-#define RELAY_TX 4
-#define RELAY_RX 5
-
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC FUNCTIONS PROTOTYPES ---------------------------------------------
- */
-
-void main_periodical_uplink( void );
-void main_hw_modem( void );
-void main_porting_tests( void );
-void main_lctt_certif( void );
-void main_periodical_uplink_relay_tx( void );
+bool relay_rx_mac_parser( lr1_stack_mac_t* lr1_mac );
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // MAIN_H
-
-/* --- EOF ------------------------------------------------------------------ */
+#endif

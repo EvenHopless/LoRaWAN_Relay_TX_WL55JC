@@ -527,6 +527,33 @@ Additionally, it requires the use of an additional low-power timer to handle som
 
 In the provided example on the STM32L4 MCU (under the lbm_examples folder), LPTIM2 is used with the disadvantage of preventing the use of STOP2 low power mode.
 
+## Relay (experimental)
+**LoRa Basic Modem** proposes an implementation of the [LoRaWAN® Relay Specification TS011-1.0.0](https://resources.lora-alliance.org/technical-specifications/ts011-1-0-0-relay) 
+
+This implementation provides the code for the relayed end-device (refer as Relay TX) and for the relay itself (refer as Relay RX). 
+### Relay RX
+
+To build the relay RX feature you need to define "RELAY_RX_ENABLE=yes"
+
+This option will require an additional 2.5 kbytes of RAM and 10 kbytes of FLASH.
+
+On a hardware note, it is strongly recommended to use a TCXO with a Relay RX to avoid RF mismatch between the end-device and the relay itself.
+
+It is important to note that the Relay RX will wake up very frequently and require a quick access to the radio (through the `smtc_modem_run_engine` function). Every action that could delay the call of this function may result in aborted scan. 
+
+### Relay TX
+
+To build the relay TX feature you need to define "RELAY_TX_ENABLE=yes"
+
+This option will require an additional 500 bytes of RAM and 5.5 kbytes of FLASH.
+
+### Known limitation for the Relay RX and TX
+ - This implementation is only compatible with embedded software cryptographic operations. 
+ - Only one component of the relay (RX or TX) could be compiled at the same time.
+ - SX128x and SX127x are not supported 
+ - Relay TX and Relay RX are not yet compatible with LBT and CSMA.
+ - Relay TX is only working with 1 LoRaWAN stack (stack ID 0)
+
 ## LoRa Basic Modem known limitations
 
 - [charge] Values returned by `smtc_modem_get_charge()` for regions CN470 and CN470_RP1 are not accurate.

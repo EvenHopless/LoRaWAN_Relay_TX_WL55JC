@@ -215,6 +215,7 @@ typedef enum smtc_modem_dl_window_e
     SMTC_MODEM_DL_WINDOW_RXB_MC_GRP2 = 0x0B,
     SMTC_MODEM_DL_WINDOW_RXB_MC_GRP3 = 0x0C,
     SMTC_MODEM_DL_WINDOW_RXBEACON    = 0x0D,
+    SMTC_MODEM_DL_WINDOW_RXR         = 0x0E,
 } smtc_modem_dl_window_t;
 
 /**
@@ -348,6 +349,9 @@ typedef enum smtc_modem_event_type_e
     SMTC_MODEM_EVENT_GNSS_ALMANAC_DEMOD_UPDATE,
     SMTC_MODEM_EVENT_WIFI_SCAN_DONE,
     SMTC_MODEM_EVENT_WIFI_TERMINATED,
+    SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC,  //!< Relay TX dynamic mode has enable or disable the WOR protocol
+    SMTC_MODEM_EVENT_RELAY_TX_MODE,     //!< Relay TX activation has been updated via a MAC command
+    SMTC_MODEM_EVENT_RELAY_TX_SYNC,     //!< Relay TX synchronisation has changed
     SMTC_MODEM_EVENT_MAX,
 } smtc_modem_event_type_t;
 

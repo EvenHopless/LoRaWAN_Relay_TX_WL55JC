@@ -1,10 +1,10 @@
 /**
- * @file      main.h
+ * @file      lorawan_relay_rx_service.h
  *
- * @brief     main program definitions
+ * @brief     lorawan_relay_rx_service
  *
  * The Clear BSD License
- * Copyright Semtech Corporation 2021. All rights reserved.
+ * Copyright Semtech Corporation 2023. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted (subject to the limitations in the disclaimer
@@ -32,8 +32,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef LORAWAN_RELAY_RX_SERVICE_H
+#define LORAWAN_RELAY_RX_SERVICE_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +46,7 @@ extern "C" {
 
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
-
+#include "lr1_stack_mac_layer.h"
 /*
  * -----------------------------------------------------------------------------
  * --- PUBLIC MACROS -----------------------------------------------------------
@@ -62,31 +62,42 @@ extern "C" {
  * --- PUBLIC TYPES ------------------------------------------------------------
  */
 
-/**
- * @brief Application examples
- */
-#define PERIODICAL_UPLINK 0
-#define HW_MODEM 1
-#define PORTING_TESTS 2
-#define LCTT_CERTIF 3
-#define RELAY_TX 4
-#define RELAY_RX 5
-
 /*
  * -----------------------------------------------------------------------------
  * --- PUBLIC FUNCTIONS PROTOTYPES ---------------------------------------------
  */
 
-void main_periodical_uplink( void );
-void main_hw_modem( void );
-void main_porting_tests( void );
-void main_lctt_certif( void );
-void main_periodical_uplink_relay_tx( void );
+/**
+ * @brief Init a the relay RX service
+ *
+ * @param[in]   service_id          Service ID (provided by supervisor)
+ * @param[in]   task_id             Task ID (provided by supervisor)
+ * @param[out]  downlink_callback   Callbak called after RX2
+ * @param[out]  on_lunch_callback   Callback called to launched the service
+ * @param[out]  on_update_callback  Callback called when service has finished
+ * @param[out]  context_callback    Context for every callback
+ */
+void lorawan_relay_rx_services_init( uint8_t* service_id, uint8_t task_id,
+                                     uint8_t ( **downlink_callback )( lr1_stack_mac_down_data_t* ),
+                                     void ( **on_lunch_callback )( void* ), void ( **on_update_callback )( void* ),
+                                     void** context_callback );
+
+/**
+ * @brief Relay has to forward a LoRaWAN Uplink
+ *
+ * @param[in]   stack_id    Stack ID to use
+ * @param[in]   data        Data to send
+ * @param[in]   data_len    Lenght of data
+ * @param[in]   time_tx     Timestamp to send the data
+ * @param[in]   is_join     True if the forwarded message is a Join Request
+ */
+void lorawan_relay_rx_fwd_uplink( uint8_t stack_id, const uint8_t* data, uint8_t data_len, uint32_t time_tx,
+                                  bool is_join );
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // MAIN_H
+#endif  // LORAWAN_RELAY_RX_SERVICE_H
 
 /* --- EOF ------------------------------------------------------------------ */

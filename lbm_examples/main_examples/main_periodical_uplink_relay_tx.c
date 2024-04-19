@@ -1,5 +1,5 @@
 /*!
- * \file      main_periodical_uplink.c
+ * \file      main_periodical_uplink_relay_tx.c
  *
  * \brief     main program for periodical example
  *
@@ -42,6 +42,7 @@
 #include "main.h"
 
 #include "smtc_modem_api.h"
+#include "smtc_modem_relay_api.h"
 #include "smtc_modem_utilities.h"
 
 #include "smtc_modem_hal.h"
@@ -160,10 +161,6 @@ static const uint8_t user_app_key[16]     = USER_LORAWAN_APP_KEY;
 #define PERIODICAL_UPLINK_DELAY_S 60
 #endif
 
-#ifndef DELAY_FIRST_MSG_AFTER_JOIN
-#define DELAY_FIRST_MSG_AFTER_JOIN 60
-#endif
-
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE TYPES -----------------------------------------------------------
@@ -222,7 +219,7 @@ static void send_uplink_counter_on_port( uint8_t port );
  * @brief Example to send a user payload on an external event
  *
  */
-void main_periodical_uplink( void )
+void main_periodical_uplink_relay_tx( void )
 {
     uint32_t sleep_time_ms = 0;
 
@@ -247,7 +244,7 @@ void main_periodical_uplink( void )
     // Init done: enable interruption
     hal_mcu_enable_irq( );
 
-    SMTC_HAL_TRACE_INFO( "Periodical uplink (%d sec) example is starting \n", PERIODICAL_UPLINK_DELAY_S );
+    SMTC_HAL_TRACE_INFO( "RELAY_TX EndDevice uplink example is starting \n" );
 
     while( 1 )
     {
@@ -322,6 +319,7 @@ static void modem_event_callback( void )
             ASSERT_SMTC_MODEM_RC( smtc_modem_set_region( stack_id, MODEM_EXAMPLE_REGION ) );
             // Schedule a Join LoRaWAN network
             ASSERT_SMTC_MODEM_RC( smtc_modem_join_network( stack_id ) );
+            ASSERT_SMTC_MODEM_RC( smtc_modem_relay_tx_enable( stack_id, 0 ) );
             break;
 
         case SMTC_MODEM_EVENT_ALARM:
@@ -339,7 +337,7 @@ static void modem_event_callback( void )
             // Send first periodical uplink on port 101
             send_uplink_counter_on_port( 101 );
             // start periodical uplink alarm
-            ASSERT_SMTC_MODEM_RC( smtc_modem_alarm_start_timer( DELAY_FIRST_MSG_AFTER_JOIN ) );
+            ASSERT_SMTC_MODEM_RC( smtc_modem_alarm_start_timer( PERIODICAL_UPLINK_DELAY_S ) );
             break;
 
         case SMTC_MODEM_EVENT_TXDONE:
@@ -433,6 +431,41 @@ static void modem_event_callback( void )
         case SMTC_MODEM_EVENT_MUTE:
             SMTC_HAL_TRACE_INFO( "Event received: MUTE\n" );
             break;
+
+        case SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC:
+        {
+            SMTC_HAL_TRACE_INFO( "Event received: RELAY_TX_DYNAMIC \n" );
+            bool is_enable;
+            if( smtc_modem_relay_tx_is_enable( STACK_ID, &is_enable ) == SMTC_MODEM_RC_OK )
+            {
+                SMTC_HAL_TRACE_INFO( "Relay TX dynamic mode is now %s \n", ( is_enable ? "enable" : "disable" ) );
+            }
+            break;
+        }
+        case SMTC_MODEM_EVENT_RELAY_TX_MODE:
+        {
+            SMTC_HAL_TRACE_INFO( "Event received: RELAY_TX_MODE \n" );
+            smtc_modem_relay_tx_activation_mode_t mode;
+
+            if( smtc_modem_relay_tx_get_activation_mode( STACK_ID, &mode ) == SMTC_MODEM_RC_OK )
+            {
+                const char* mode_name[] = { "DISABLE", "ENABLE", "DYNAMIC", " ED CONTROL" };
+
+                SMTC_HAL_TRACE_INFO( "Relay TX activation mode is now %s \n", mode_name[mode] );
+            }
+            break;
+        }
+        case SMTC_MODEM_EVENT_RELAY_TX_SYNC:
+        {
+            SMTC_HAL_TRACE_INFO( "Event received: RELAY_TX_SYNC \n" );
+            smtc_modem_relay_tx_sync_status_t sync;
+            if( smtc_modem_relay_tx_get_sync_status( STACK_ID, &sync ) == SMTC_MODEM_RC_OK )
+            {
+                const char* sync_name[] = { "INIT", "UNSYNC", "SYNC" };
+                SMTC_HAL_TRACE_INFO( "Relay TX synchronisation status is now %s \n", sync_name[sync] );
+            }
+            break;
+        }
 
         default:
             SMTC_HAL_TRACE_ERROR( "Unknown event %u\n", current_event.event_type );

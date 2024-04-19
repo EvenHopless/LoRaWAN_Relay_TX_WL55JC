@@ -272,6 +272,21 @@ APP_C_SOURCES += \
 	main_examples/main_periodical_uplink.c
 endif
 
+ifeq ($(MODEM_APP),RELAY_TX)
+APP_C_SOURCES += \
+	main_examples/main_periodical_uplink_relay_tx.c
+
+LBM_BUILD_OPTIONS += RELAY_TX_ENABLE=yes
+endif
+
+ifeq ($(MODEM_APP),RELAY_RX)
+APP_C_SOURCES += \
+	main_examples/main_periodical_uplink.c
+
+LBM_BUILD_OPTIONS += RELAY_RX_ENABLE=yes
+COMMON_C_DEFS += -DPERIODICAL_UPLINK_DELAY_S=3600
+endif
+
 ifeq ($(MODEM_APP),PORTING_TESTS)
 APP_C_SOURCES += \
 	main_examples/main_porting_tests.c

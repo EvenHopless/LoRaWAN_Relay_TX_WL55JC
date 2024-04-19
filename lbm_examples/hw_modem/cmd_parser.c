@@ -547,7 +547,9 @@ static const uint8_t events_lut[SMTC_MODEM_EVENT_MAX] = {
     [SMTC_MODEM_EVENT_GNSS_ALMANAC_DEMOD_UPDATE]         = 0x22,
     [SMTC_MODEM_EVENT_WIFI_SCAN_DONE]                    = 0x23,
     [SMTC_MODEM_EVENT_WIFI_TERMINATED]                   = 0x24,
-
+    [SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC]                  = 0x30,
+    [SMTC_MODEM_EVENT_RELAY_TX_MODE]                     = 0x31,
+    [SMTC_MODEM_EVENT_RELAY_TX_SYNC]                     = 0x32,
 
 };
 
@@ -659,8 +661,8 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
         switch( current_event.event_type )
         {
         case SMTC_MODEM_EVENT_RESET:
-            cmd_output->buffer[2] = ( uint8_t ) ( current_event.event_data.reset.count >> 8 );
-            cmd_output->buffer[3] = ( uint8_t ) ( current_event.event_data.reset.count );
+            cmd_output->buffer[2] = ( uint8_t )( current_event.event_data.reset.count >> 8 );
+            cmd_output->buffer[3] = ( uint8_t )( current_event.event_data.reset.count );
             cmd_output->length    = 4;
             break;
         case SMTC_MODEM_EVENT_TXDONE:
@@ -724,6 +726,9 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
         case SMTC_MODEM_EVENT_GNSS_ALMANAC_DEMOD_UPDATE:
         case SMTC_MODEM_EVENT_WIFI_SCAN_DONE:
         case SMTC_MODEM_EVENT_WIFI_TERMINATED:
+        case SMTC_MODEM_EVENT_RELAY_TX_DYNAMIC:
+        case SMTC_MODEM_EVENT_RELAY_TX_MODE:
+        case SMTC_MODEM_EVENT_RELAY_TX_SYNC:
             cmd_output->length = 2;
             break;
         default:
@@ -1724,7 +1729,7 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
         cmd_output->return_code              = rc_lut[smtc_modem_get_status( STACK_ID, &status_mask )];
         if( cmd_output->return_code == CMD_RC_OK )
         {
-            cmd_output->buffer[0] = ( uint8_t ) ( status_mask );
+            cmd_output->buffer[0] = ( uint8_t )( status_mask );
             cmd_output->length    = 1;
         }
         break;
@@ -1756,7 +1761,7 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
         cmd_output->return_code                    = rc_lut[smtc_modem_store_and_forward_get_state( STACK_ID, &state )];
         if( cmd_output->return_code == CMD_RC_OK )
         {
-            cmd_output->buffer[0] = ( uint8_t ) ( state );
+            cmd_output->buffer[0] = ( uint8_t )( state );
             cmd_output->length    = 1;
         }
         break;
@@ -1895,8 +1900,7 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
             uint8_t metadata_offset = 0;
             for( uint8_t scan_index = 0; scan_index < gnss_scan_data.nb_scans_valid; scan_index++ )
             {
-                uint32_t lat_x10000 =
-                    ( uint32_t ) ( gnss_scan_data.scans[scan_index].aiding_position.latitude * 10000 );
+                uint32_t lat_x10000 = ( uint32_t )( gnss_scan_data.scans[scan_index].aiding_position.latitude * 10000 );
 
                 cmd_output->buffer[metadata_offset++] = ( lat_x10000 >> 24 ) & 0xff;
                 cmd_output->buffer[metadata_offset++] = ( lat_x10000 >> 16 ) & 0xff;
@@ -1904,7 +1908,7 @@ cmd_parse_status_t parse_cmd( cmd_input_t* cmd_input, cmd_response_t* cmd_output
                 cmd_output->buffer[metadata_offset++] = ( lat_x10000 & 0xff );
 
                 uint32_t long_x10000 =
-                    ( uint32_t ) ( gnss_scan_data.scans[scan_index].aiding_position.longitude * 10000 );
+                    ( uint32_t )( gnss_scan_data.scans[scan_index].aiding_position.longitude * 10000 );
 
                 cmd_output->buffer[metadata_offset++] = ( long_x10000 >> 24 ) & 0xff;
                 cmd_output->buffer[metadata_offset++] = ( long_x10000 >> 16 ) & 0xff;

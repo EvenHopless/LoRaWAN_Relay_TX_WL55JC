@@ -50,6 +50,15 @@
 #include "lr1mac_config.h"
 #include "smtc_modem_crypto.h"
 
+#if defined( RELAY_RX )
+#include "relay_rx_mac_parser.h"
+#include "relay_def.h"
+#endif
+#if defined( RELAY_TX )
+#include "relay_tx_api.h"
+#include "relay_tx_mac_parser.h"
+#include "relay_def.h"
+#endif
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE TYPES -----------------------------------------------------------
@@ -66,9 +75,13 @@
  * --- PRIVATE CONSTANTS -------------------------------------------------------
  */
 #if( MODEM_HAL_DBG_TRACE == MODEM_HAL_FEATURE_ON )
+#if defined( RELAY_TX )
+static const char* smtc_name_rx_windows[] = { "RX1", "RX2", "RXR" };
+#else
 static const char* smtc_name_rx_windows[] = { "RX1", "RX2" };
-static const char* smtc_name_bw[]         = { "BW007", "BW010", "BW015", "BW020", "BW031", "BW041", "BW062",
-                                              "BW125", "BW200", "BW250", "BW400", "BW500", "BW800", "BW1600" };
+#endif
+static const char* smtc_name_bw[] = { "BW007", "BW010", "BW015", "BW020", "BW031", "BW041", "BW062",
+                                      "BW125", "BW200", "BW250", "BW400", "BW500", "BW800", "BW1600" };
 #endif
 
 /*
@@ -244,6 +257,22 @@ void lr1_stack_mac_tx_frame_encrypt( lr1_stack_mac_t* lr1_mac )
         tx_fopts_length = lr1_mac->tx_fopts_current_length;
     }
 
+#if defined( RELAY_RX )
+    smtc_se_key_identifier_t enc_key = ( lr1_mac->tx_fport == PORTNWK ) ? SMTC_SE_NWK_S_ENC_KEY : SMTC_SE_APP_S_KEY;
+    if( lr1_mac->tx_fport == FPORT_RELAY )
+    {
+        enc_key = SMTC_SE_NWK_S_ENC_KEY;
+    }
+    if( smtc_modem_crypto_payload_encrypt(
+            &lr1_mac->tx_payload[FHDROFFSET + lr1_mac->tx_fport_present + tx_fopts_length], lr1_mac->app_payload_size,
+            enc_key, lr1_mac->dev_addr, UP_LINK, lr1_mac->fcnt_up,
+            &lr1_mac->tx_payload[FHDROFFSET + lr1_mac->tx_fport_present + tx_fopts_length],
+            lr1_mac->stack_id ) != SMTC_MODEM_CRYPTO_RC_SUCCESS )
+    {
+        SMTC_MODEM_HAL_PANIC( "Crypto error during payload encryption\n" );
+    }
+#else
+
     if( smtc_modem_crypto_payload_encrypt(
             &lr1_mac->tx_payload[FHDROFFSET + lr1_mac->tx_fport_present + tx_fopts_length], lr1_mac->app_payload_size,
             ( lr1_mac->tx_fport == PORTNWK ) ? SMTC_SE_NWK_S_ENC_KEY : SMTC_SE_APP_S_KEY, lr1_mac->dev_addr, UP_LINK,
@@ -252,6 +281,7 @@ void lr1_stack_mac_tx_frame_encrypt( lr1_stack_mac_t* lr1_mac )
     {
         SMTC_MODEM_HAL_PANIC( "Crypto error during payload encryption\n" );
     }
+#endif
 
     if( smtc_modem_crypto_compute_and_add_mic( &lr1_mac->tx_payload[0], lr1_mac->tx_payload_size, SMTC_SE_NWK_S_ENC_KEY,
                                                lr1_mac->dev_addr, UP_LINK, lr1_mac->fcnt_up,
@@ -567,6 +597,11 @@ void lr1_stack_mac_rx_radio_start( lr1_stack_mac_t* lr1_mac, const rx_win_type_t
     case RX2:
         rx_frequency = lr1_mac->rx2_frequency;
         break;
+#if defined( RELAY_TX )
+    case RXR:
+        smtc_relay_tx_get_rxr_param( lr1_mac, NULL, &rx_frequency );
+        break;
+#endif
     default:
         SMTC_MODEM_HAL_PANIC( "RX windows unknow\n" );
         break;
@@ -727,16 +762,22 @@ void lr1_stack_mac_rp_callback( lr1_stack_mac_t* lr1_mac )
     case RP_STATUS_RX_TIMEOUT: {
 #ifndef BSP_LR1MAC_DISABLE_FINE_TUNE
         uint32_t rx_timestamp_calibration = tcurrent_ms;
-        uint32_t rx_delay_ms;
+        uint32_t rx_delay_ms              = 0;
 
         if( lr1_mac->current_win == RX1 )
         {
             rx_delay_ms = lr1_mac->rx1_delay_s;
         }
-        else
+        else if( lr1_mac->current_win == RX2 )
         {
             rx_delay_ms = lr1_mac->rx1_delay_s + 1;
         }
+#if defined( RELAY_TX )
+        else if( lr1_mac->current_win == RXR )
+        {
+            rx_delay_ms = RXR_WINDOWS_DELAY_S;
+        }
+#endif
         rx_delay_ms *= 1000;
 
         int32_t error_fine_tune = rx_timestamp_calibration -
@@ -819,6 +860,13 @@ bool lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
         lr1_mac->rx_data_rate = lr1_mac->rx2_data_rate;
         break;
 
+#if defined( RELAY_TX )
+    case RXR:
+        delay_ms = RXR_WINDOWS_DELAY_S;
+        smtc_relay_tx_get_rxr_param( lr1_mac, &lr1_mac->rx_data_rate, NULL );
+        break;
+#endif
+
     default:
         is_type_ok = false;
         SMTC_MODEM_HAL_PANIC( "RX windows unknow\n" );
@@ -853,9 +901,22 @@ bool lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
                                   +smtc_modem_hal_get_board_delay_ms( ) +
                                   lr1_mac->fine_tune_board_setting_delay_ms[lr1_mac->rx_data_rate];
 
+#if defined( RELAY_TX )
+        uint32_t crystal_error = lr1_mac->crystal_error;
+        if( type == RXR )
+        {
+            crystal_error += smtc_relay_tx_get_crystal_error( lr1_mac );
+        }
+        smtc_real_get_rx_window_parameters( lr1_mac->real, lr1_mac->rx_data_rate, delay_ms, &lr1_mac->rx_window_symb,
+                                            &lr1_mac->rx_timeout_symb_in_ms, &lr1_mac->rx_timeout_ms, 0,
+                                            crystal_error );
+
+#else
+
         smtc_real_get_rx_window_parameters( lr1_mac->real, lr1_mac->rx_data_rate, delay_ms, &lr1_mac->rx_window_symb,
                                             &lr1_mac->rx_timeout_symb_in_ms, &lr1_mac->rx_timeout_ms, 0,
                                             lr1_mac->crystal_error );
+#endif
         smtc_real_get_rx_start_time_offset_ms( lr1_mac->real, lr1_mac->rx_data_rate, board_delay_ms,
                                                lr1_mac->rx_window_symb, &lr1_mac->rx_offset_ms );
 
@@ -978,6 +1039,12 @@ rx_packet_type_t lr1_stack_mac_rx_frame_decode( lr1_stack_mac_t* lr1_mac )
             {
                 lr1_mac->rx_down_data.rx_metadata.rx_frequency_hz = lr1_mac->rx2_frequency;
             }
+#if defined( RELAY_TX )
+            else if( lr1_mac->current_win == RXR )
+            {
+                smtc_relay_tx_get_rxr_param( lr1_mac, NULL, &lr1_mac->rx_down_data.rx_metadata.rx_frequency_hz );
+            }
+#endif
             else
             {
                 SMTC_MODEM_HAL_PANIC( "Rx Window invalid\n" );
@@ -994,7 +1061,22 @@ rx_packet_type_t lr1_stack_mac_rx_frame_decode( lr1_stack_mac_t* lr1_mac )
                 // => set rx_packet_type = NWKRXPACKET
                 // => if ack bit is set to one : notify the upper layer that the stack have received an ack bit
 
+#if defined( RELAY_RX )
+                bool decode_with_nwk_s_key = false;
+
                 if( lr1_mac->rx_down_data.rx_metadata.rx_fport == 0 )
+                {
+                    decode_with_nwk_s_key = true;
+                }
+
+                if( lr1_mac->rx_down_data.rx_metadata.rx_fport == FPORT_RELAY )
+                {
+                    decode_with_nwk_s_key = true;
+                }
+                if( decode_with_nwk_s_key == true )
+#else
+                if( lr1_mac->rx_down_data.rx_metadata.rx_fport == 0 )
+#endif
                 {  // receive a mac management frame without fopts
                     if( lr1_mac->rx_fopts_length == 0 )
                     {
@@ -1343,10 +1425,41 @@ status_lorawan_t lr1_stack_mac_cmd_parse( lr1_stack_mac_t* lr1_mac )
             beacon_freq_req_parser( lr1_mac );
             break;
 
+#if defined( RELAY_RX )
+        default: {
+            if( ( lr1_mac->rx_down_data.rx_metadata.rx_fport_present == true ) &&
+                ( lr1_mac->rx_down_data.rx_metadata.rx_fport == FPORT_RELAY ) )
+            {
+                lr1_mac->nwk_payload_size = 0;  // Don't process data on FPORT 226 as MAC command
+            }
+            else
+            {
+                const bool mac_is_known = relay_rx_mac_parser( lr1_mac );
+                if( mac_is_known == false )
+                {
+                    lr1_mac->nwk_payload_size = 0;
+                    SMTC_MODEM_HAL_TRACE_PRINTF( " Unknown mac command %02x\n", cmd_identifier );
+                }
+            }
+        }
+        break;
+
+#elif defined( RELAY_TX )
+        default: {
+            const bool mac_is_known = relay_tx_mac_parser( lr1_mac );
+            if( mac_is_known == false )
+            {
+                lr1_mac->nwk_payload_size = 0;
+                SMTC_MODEM_HAL_TRACE_PRINTF( " Unknown mac command %02x\n", cmd_identifier );
+            }
+        }
+        break;
+#else
         default:
             lr1_mac->nwk_payload_size = 0;
             SMTC_MODEM_HAL_TRACE_PRINTF( " Unknown mac command %02x\n", cmd_identifier );
             break;
+#endif
         }
     }
 

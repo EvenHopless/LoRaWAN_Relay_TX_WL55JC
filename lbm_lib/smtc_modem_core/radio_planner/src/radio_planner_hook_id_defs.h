@@ -66,6 +66,10 @@ enum RP_HOOK_ID_DEF
     RP_HOOK_ID_DIRECT_RP_ACCESS_WIFI,
 #endif
 
+#if defined( RELAY_RX )
+    RP_HOOK_ID_RELAY_FORWARD_RXR,
+#endif
+
 #if defined( ADD_CLASS_B )
     RP_HOOK_ID_CLASS_B_BEACON,
     RP_HOOK_ID_LR1MAC_STACK = RP_HOOK_ID_CLASS_B_BEACON + NUMBER_OF_STACKS,
@@ -98,6 +102,12 @@ enum RP_HOOK_ID_DEF
     RP_HOOK_ID_BLE_TX_BEACON,
 #endif
 
+#if defined( RELAY_TX )
+    RP_HOOK_ID_RELAY_TX,
+#endif  // RELAY_TX
+#if defined( RELAY_RX )
+    RP_HOOK_ID_RELAY_RX_CAD,
+#endif  // RELAY_RX
 #if defined( ADD_CLASS_C )
     RP_HOOK_ID_CLASS_C,
     RP_HOOK_ID_MAX = RP_HOOK_ID_CLASS_C + NUMBER_OF_STACKS,

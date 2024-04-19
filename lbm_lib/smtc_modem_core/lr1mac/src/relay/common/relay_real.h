@@ -1,10 +1,10 @@
-/**
- * @file      main.h
+/*!
+ * \file    relay_real.h
  *
- * @brief     main program definitions
+ * \brief   Relay regionnal parameter function
  *
  * The Clear BSD License
- * Copyright Semtech Corporation 2021. All rights reserved.
+ * Copyright Semtech Corporation 2023. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted (subject to the limitations in the disclaimer
@@ -31,62 +31,56 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef __REAL_RELAY__
+#define __REAL_RELAY__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*
- * -----------------------------------------------------------------------------
- * --- DEPENDENCIES ------------------------------------------------------------
+ *-----------------------------------------------------------------------------------
+ * --- DEPENDENCIES -----------------------------------------------------------------
  */
-
-#include <stdint.h>   // C99 types
-#include <stdbool.h>  // bool type
-
+#include "smtc_real_defs.h"
+#include "lr1mac_defs.h"
 /*
  * -----------------------------------------------------------------------------
- * --- PUBLIC MACROS -----------------------------------------------------------
- */
-
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC CONSTANTS --------------------------------------------------------
+ * --- PRIVATE MACROS-----------------------------------------------------------
  */
 
 /*
  * -----------------------------------------------------------------------------
- * --- PUBLIC TYPES ------------------------------------------------------------
+ * --- PRIVATE CONSTANTS -------------------------------------------------------
+ */
+/*
+ *-----------------------------------------------------------------------------------
+ *--- PRIVATE VARIABLES -------------------------------------------------------------
+ */
+/*
+ *-----------------------------------------------------------------------------------
+ *--- PRIVATE FUNCTIONS DECLARATION -------------------------------------------------
+ */
+
+/*
+ *-----------------------------------------------------------------------------------
+ *--- PUBLIC FUNCTIONS DEFINITIONS --------------------------------------------------
  */
 
 /**
- * @brief Application examples
+ * @brief   Return relay default channel configuration
+ *
+ * @param[in] real      Regional Abstraction Layer object
+ * @param[in] idx       Value of the default index (0 or 1)
+ * @param[out] datarate datarate of default channel
+ * @param[out] freq_wor frequency of WOR (in Hz) of default channel
+ * @param[out] freq_ack frequency or WOR ACK (in Hz) of default channel
+ * @return status_lorawan_t
  */
-#define PERIODICAL_UPLINK 0
-#define HW_MODEM 1
-#define PORTING_TESTS 2
-#define LCTT_CERTIF 3
-#define RELAY_TX 4
-#define RELAY_RX 5
-
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC FUNCTIONS PROTOTYPES ---------------------------------------------
- */
-
-void main_periodical_uplink( void );
-void main_hw_modem( void );
-void main_porting_tests( void );
-void main_lctt_certif( void );
-void main_periodical_uplink_relay_tx( void );
+status_lorawan_t smtc_relay_get_default_channel_config( smtc_real_t* real, const uint8_t idx, uint8_t* datarate,
+                                                        uint32_t* freq_wor, uint32_t* freq_ack );
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // MAIN_H
-
-/* --- EOF ------------------------------------------------------------------ */
+#endif

@@ -1,10 +1,10 @@
-/**
- * @file      main.h
+/*!
+ * \file    relay_def.h
  *
- * @brief     main program definitions
+ * \brief   General relay definition
  *
  * The Clear BSD License
- * Copyright Semtech Corporation 2021. All rights reserved.
+ * Copyright Semtech Corporation 2023. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted (subject to the limitations in the disclaimer
@@ -31,62 +31,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __RELAY_DEF__
+#define __RELAY_DEF__
 
-#ifndef MAIN_H
-#define MAIN_H
-
-#ifdef __cplusplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 
-/*
- * -----------------------------------------------------------------------------
- * --- DEPENDENCIES ------------------------------------------------------------
- */
+#include <stdint.h>
+#include <stdbool.h>
 
-#include <stdint.h>   // C99 types
-#include <stdbool.h>  // bool type
+#define FPORT_RELAY ( 226 )
 
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC MACROS -----------------------------------------------------------
- */
+#define RXR_WINDOWS_DELAY_S ( 18 )
 
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC CONSTANTS --------------------------------------------------------
- */
+#define RELAY_STACK_ID ( 0 )
 
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC TYPES ------------------------------------------------------------
- */
+#define RELAY_OVERHEAD_FORWARD ( 19 )  // 6 for metadata and 13 for LoRaWAN (1:MHDR/ 7:FHDR / 1:FPORT /4:MIC)
 
-/**
- * @brief Application examples
- */
-#define PERIODICAL_UPLINK 0
-#define HW_MODEM 1
-#define PORTING_TESTS 2
-#define LCTT_CERTIF 3
-#define RELAY_TX 4
-#define RELAY_RX 5
-
-/*
- * -----------------------------------------------------------------------------
- * --- PUBLIC FUNCTIONS PROTOTYPES ---------------------------------------------
- */
-
-void main_periodical_uplink( void );
-void main_hw_modem( void );
-void main_porting_tests( void );
-void main_lctt_certif( void );
-void main_periodical_uplink_relay_tx( void );
-
-#ifdef __cplusplus
+#ifdef _cplusplus
 }
 #endif
-
-#endif  // MAIN_H
-
-/* --- EOF ------------------------------------------------------------------ */
+#endif

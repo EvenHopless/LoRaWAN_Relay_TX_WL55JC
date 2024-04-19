@@ -4,8 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/lbm_examples/mcu_drivers/STM32L4xx_HAL_Driver/Inc",
-                "${workspaceFolder}/lbm_examples/mcu_drivers/core/STM32L4xx"
+                "${workspaceFolder}/lbm_examples/**",
+                "${workspaceFolder}/lbm_lib/**"
             ],
             "defines": [
                 "_DEBUG",
